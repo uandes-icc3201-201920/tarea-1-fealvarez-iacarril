@@ -1,1 +1,3 @@
 # TODO: Crear el Makefile...
+all:
+	g++ -c server.cpp

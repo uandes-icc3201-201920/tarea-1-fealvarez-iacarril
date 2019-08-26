@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include "util.h"
-
+#include "mxnet-cpp/MxNetCpp.h"
 using namespace std;
 
 // Almacenamiento KV
@@ -29,7 +29,10 @@ int main(int argc, char** argv) {
     }
 	
 	// Uso elemental del almacenamiento KV:
-	
+    db = mx.db.create('local');
+    shape = (10000-1000, 2);
+    db.init(3, mx.nd.ones(shape)*2);
+      
 	// Creamos un arreglo de bytes a mano
 	byte data[] = { 0x01, 0x01, 0x01, 0x01, 0x01 };
 
