@@ -11,7 +11,7 @@
 #include "util.h"
 #define PORT 8080
 using namespace std;
-
+// para parsear string a char* algo funciona mal, no se que es
 char* commandTransform (string command) {
     char cstr[command.size() + 1];
     std::copy(command.begin(), command.end(), cstr);
