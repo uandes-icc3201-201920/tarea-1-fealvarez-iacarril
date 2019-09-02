@@ -4,13 +4,24 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <arpa/inet.h> 
 #include "util.h"
-
+#define PORT 8080
 using namespace std;
+
+char* commandTransform (string command) {
+    char cstr[command.size() + 1];
+    std::copy(command.begin(), command.end(), cstr);
+    cstr[command.size()] = '\0';
+    return cstr;
+}
 
 int main(int argc, char** argv) {
 	
-	string cmd = "";
+    string cmd = "";
 	
 	int sock = 0, valread; 
     struct sockaddr_in serv_addr; 
@@ -40,6 +51,8 @@ int main(int argc, char** argv) {
 	while (cmd != "quit") {
 		cout << ">";
 		cin >> cmd;
+        hello = commandTransform(cmd);
+        send(sock, hello, strlen(hello), 0);
 	}
 
 	return 0;	
