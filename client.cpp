@@ -8,25 +8,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <arpa/inet.h> 
+#include <bits/stdc++.h>
 #include "util.h"
 #define PORT 8080
 using namespace std;
 // para parsear string a char* algo funciona mal, no se que es
-char* commandTransform (string command) {
-    char cstr[command.size() + 1];
-    std::copy(command.begin(), command.end(), cstr);
-    cstr[command.size()] = '\0';
-    return cstr;
-}
+/*char* commandTransform (string command) {
+    return *cstr;
+}*/
 
 int main(int argc, char** argv) {
 	
     string cmd = "";
-	
 	int sock = 0, valread; 
+    int sent = 0;
     struct sockaddr_in serv_addr; 
-    char *hello = "Hello from client"; 
     char buffer[1024] = {0}; 
+    char *hello = "Hello from client"; 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
         printf("\n Socket creation error \n"); 
@@ -51,9 +49,14 @@ int main(int argc, char** argv) {
 	while (cmd != "quit") {
 		cout << ">";
 		cin >> cmd;
-        hello = commandTransform(cmd);
-        send(sock, hello, strlen(hello), 0);
+        cout << cmd << endl;
+        char const *char_cmd = cmd.c_str();
+        cout << char_cmd << endl;
+        sent = send(sock, char_cmd, strlen(char_cmd), 0);
+        cout << "sent" << endl;
+        //usleep(10000);
+        valread = read(sock, buffer, 1024);
+        cout << buffer << endl;
 	}
-
 	return 0;	
 }

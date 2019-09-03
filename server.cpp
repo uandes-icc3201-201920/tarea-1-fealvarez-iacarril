@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 	char buffer[1024] = {0};
+	char* hello = "Hello from server";
 
 	// Procesar opciones de linea de comando
     while ((opt = getopt (argc, argv, "s:")) != -1) { 
@@ -91,11 +92,12 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE); 
     } 
     valread = read(new_socket, buffer, 1024);
-    printf("%s\n", buffer);
+    printf("%s\n",buffer ); 
+    send(new_socket, hello, strlen(hello), 0);
 	return 0;
 }
 
-
+/*
 int insert (int t_key, Value t_value) {
 	db.insert(std::pair<unsigned long, Value>(t_key,t_value));
-}
+}*/
