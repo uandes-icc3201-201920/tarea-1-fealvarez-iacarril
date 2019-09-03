@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     int sent = 0;
     struct sockaddr_in serv_addr; 
     char buffer[1024] = {0}; 
-    char *hello = "Hello from client"; 
+    //char *hello = "Hello from client"; 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
         printf("\n Socket creation error \n"); 
@@ -49,11 +49,11 @@ int main(int argc, char** argv) {
 	while (cmd != "quit") {
 		cout << ">";
 		cin >> cmd;
-        cout << cmd << endl;
+        //cout << cmd << endl;
         char const *char_cmd = cmd.c_str();
         cout << char_cmd << endl;
         sent = send(sock, char_cmd, strlen(char_cmd), 0);
-        cout << "sent" << endl;
+        //cout << "sent" << endl;
         //usleep(10000);
         valread = read(sock, buffer, 1024);
         cout << buffer << endl;
