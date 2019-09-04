@@ -15,6 +15,49 @@ using namespace std;
 KVStore db;
 int id_num = 1000;
 
+char** processCommand (char* command) { // insert(1023, 1213004) 
+	char aux_cmd[100];
+	strcpy(aux_cmd, command);
+	char** command_args = (char **) malloc((sizeof(char * ) * 3));
+	int j = 0;
+	for (j = 0; j<3 ; j++){
+		command_args[j] = (char *) malloc(sizeof(char) * 30);
+	}
+	char delimiter = '(';
+	char delimiter2 = ',';
+	char delimiter3 = ')';
+	int num_args = 0;
+	//char * start_of_arg;
+	int i = 0;
+	int sub_arg_char_num = 0;
+	//cout << "in method"  << endl;
+	//cout << aux_cmd << endl;
+	for (i = 0; num_args < 3; i++){
+		//cout << aux_cmd[i] << endl;
+		
+		if(aux_cmd[i] == ',' || aux_cmd[i] == '('){
+			command_args[num_args][sub_arg_char_num + 1] = '\0';
+			cout << command_args[num_args] << endl;
+			num_args++;
+			sub_arg_char_num = 0;
+			i++;
+		}
+		else if (aux_cmd[i] == ')'){
+			command_args[num_args][sub_arg_char_num] = '\0';
+			break;
+		}
+		command_args[num_args][sub_arg_char_num] = aux_cmd[i];
+		sub_arg_char_num++;
+		//cout << command_args[num_args][sub_arg_char_num] << endl;
+	}
+	cout << command_args[0] << endl;
+	cout << command_args[1] << endl;
+	cout << command_args[2] << endl;
+	return command_args;
+}
+
+
+//void insert (char*, char*)
 
 int main(int argc, char** argv) {	
 	
@@ -92,8 +135,12 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE); 
     } 
     valread = read(new_socket, buffer, 1024);
-    printf("%s\n",buffer ); 
+    // cout << buffer << endl;
+    char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
+    cout << "out of method" << endl;
+    cout << parse_cmd[0] << endl;
     send(new_socket, hello, strlen(hello), 0);
+
 	return 0;
 }
 
