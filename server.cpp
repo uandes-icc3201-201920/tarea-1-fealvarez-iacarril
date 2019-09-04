@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 	// Nota: Debiera diseñarse una solución más robusta con una interfaz
 	// adecuada para acceder a la estructura.
 	db.insert(std::pair<unsigned long, Value>(1000, val));
-		
+
 	// Imprimir lo que hemos agregado al mapa KV.
 	cout << db[1000].size << " " << (int) db[1000].data[0] << endl;
 	// Forcefully attaching socket to the port 8080 
@@ -134,6 +134,7 @@ int main(int argc, char** argv) {
         perror("accept"); 
         exit(EXIT_FAILURE); 
     } 
+<<<<<<< HEAD
     valread = read(new_socket, buffer, 1024);
     // cout << buffer << endl;
     char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
@@ -141,6 +142,14 @@ int main(int argc, char** argv) {
     cout << parse_cmd[0] << endl;
     send(new_socket, hello, strlen(hello), 0);
 
+=======
+	while(true){
+	    valread = read(new_socket, buffer, 1024);
+	    printf("%s\n",buffer ); 
+	    send(new_socket, hello, strlen(hello), 0);
+	    bzero(buffer, 1024);
+	}
+>>>>>>> 8ebf1a72a8b1b182e9431ca666359a5c86033b00
 	return 0;
 }
 
