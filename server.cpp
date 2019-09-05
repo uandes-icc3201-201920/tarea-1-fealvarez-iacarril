@@ -264,9 +264,15 @@ int main(int argc, char** argv) {
 	    	cout << peek << endl;
 	    }
 
-	    if(strcmp(parse_cmd[0], "update") == 0)
+	    else if(strcmp(parse_cmd[0], "update") == 0)
 	    {
 			updateDB(parse_cmd[1], parse_cmd[2]);
+	    }
+
+	    else if(strcmp(parse_cmd[0], "delete") == 0)
+	    {
+			db.erase(atoi(parse_cmd[1]));
+			response = "Deleted.";
 	    }
 
 		send(new_socket, response, strlen(response), 0);
