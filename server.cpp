@@ -81,6 +81,7 @@ int insertDB(char* key, char* value) {
 
 	return atoi(key);
 }
+
 int insertDBNoKey(char* value) {
 	int x = atoi(value);
 	char bytes[sizeof x];
@@ -92,15 +93,46 @@ int insertDBNoKey(char* value) {
 	int key = nextKey();
 	cout << key << endl;
 	db.insert(std::pair<unsigned long, Value>(key, val2));
-	cout << (int) db[key].data[0] << endl;
 
 	return key;
 }
 
 int getDB(char* key) {
-	int value = (int) db[atoi(key)].data[0];
-	cout << value << endl;
-	return value;
+	if(db.count(atoi(key)) != 0)
+	{
+		int value = (int) db[atoi(key)].data[0];
+		cout << value << endl;
+		return value;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+bool peekDB(char* key) {
+	if(db.count(atoi(key)) != 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+int updateDB(char* key, char* value) {
+	int x = atoi(value);
+	char bytes[sizeof x];
+	std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
+	          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
+	          bytes);
+	vector<byte> vdata(bytes, bytes + sizeof(bytes));
+	Value val2 = {sizeof atoi(value), vdata};
+	db[atoi(key)] = (atoi(key), val2);
+	cout << (int) db[atoi(key)].data[0] << endl;
+
+	return (int) db[atoi(key)].data[0];
 }
 
 
@@ -187,11 +219,12 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE); 
     } 
 	while(true){
+	    bzero(buffer, 1024);
 	    valread = read(new_socket, buffer, 1024);
 	    printf("%s\n",buffer ); 
     	char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
 	    send(new_socket, hello, strlen(hello), 0);
-	    bzero(buffer, 1024);
+	    char* response = "";
 
 	    if(strcmp(parse_cmd[0], "insert") == 0)
 	    {
@@ -203,16 +236,41 @@ int main(int argc, char** argv) {
 	    	{
 				insertDBNoKey(parse_cmd[1]);
 	    	}
-
 	    }
 
 	    else if(strcmp(parse_cmd[0], "get") == 0)
 	    {
-	    	int value = getDB(parse_cmd[1]);
-	    	auto char_s = std::to_string(value);
-	    	char const *char_value = char_s.c_str();
-			send(new_socket, char_value, strlen(char_value), 0);
+	    	if(int value = getDB(parse_cmd[1]))
+	    	{
+	    		auto char_s = std::to_string(value);
+	    		char *char_value = &char_s[0];
+	    		response = char_value;
+	    	}
+	    	else
+	    	{
+	    		char* sending = ".";
+	    		response = sending;
+	    	}
 	    }
+
+	    else if(strcmp(parse_cmd[0], "peek") == 0)
+	    {
+	    	char* peek = "false";
+	    	if(peekDB(parse_cmd[1]))
+	    	{
+	    		peek = "true";
+	    	}
+	    	response = peek;
+	    	cout << peek << endl;
+	    }
+
+	    if(strcmp(parse_cmd[0], "update") == 0)
+	    {
+			updateDB(parse_cmd[1], parse_cmd[2]);
+	    }
+
+		send(new_socket, response, strlen(response), 0);
+	    bzero(buffer, 1024);
 	}
 	return 0;
 }
