@@ -69,7 +69,6 @@ int nextKey()
 }
 
 int insertDB(char* key, char* value) {
-	cout << "With Key" << endl;
 	int x = atoi(value);
 	char bytes[sizeof x];
 	std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
@@ -82,9 +81,7 @@ int insertDB(char* key, char* value) {
 
 	return atoi(key);
 }
-
 int insertDBNoKey(char* value) {
-	cout << "Without Key" << endl;
 	int x = atoi(value);
 	char bytes[sizeof x];
 	std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
@@ -95,12 +92,17 @@ int insertDBNoKey(char* value) {
 	int key = nextKey();
 	cout << key << endl;
 	db.insert(std::pair<unsigned long, Value>(key, val2));
-	cout << "ah" << endl;
-	cout << db[key].data[0] << endl;
-	cout << "ah2" << endl;
+	cout << (int) db[key].data[0] << endl;
 
 	return key;
 }
+
+int getDB(char* key) {
+	int value = (int) db[atoi(key)].data[0];
+	cout << value << endl;
+	return value;
+}
+
 
 //void insert (char*, char*)
 
@@ -112,7 +114,7 @@ int main(int argc, char** argv) {
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 	char buffer[1024] = {0};
-	char* hello = "Hello from server";
+	char* hello = "Server connected. \n";
 	// Procesar opciones de linea de comando
     while ((opt = getopt (argc, argv, "s:")) != -1) { 
         switch (opt)
@@ -193,44 +195,23 @@ int main(int argc, char** argv) {
 
 	    if(strcmp(parse_cmd[0], "insert") == 0)
 	    {
-	    	cout << "Insertion" << endl;
 	    	if(atoi(parse_cmd[2]) != NULL)
 	    	{
-	    		/*
-	    		cout << "With Key" << endl;
-		    	int x = atoi(parse_cmd[2]);
-				char bytes[sizeof x];
-				std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
-				          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
-				          bytes);
-				vector<byte> vdata(bytes, bytes + sizeof(bytes));
-				Value val2 = {sizeof atoi(parse_cmd[2]), vdata};
-		    	db.insert(std::pair<unsigned long, Value>(atoi(parse_cmd[1]), val2));
-				cout << (int) db[atoi(parse_cmd[1])].data[0] << endl; */
 				insertDB(parse_cmd[1], parse_cmd[2]);
 	    	}
 	    	else
 	    	{
-	    		/* cout << "Without Key" << endl;
-		    	int x = atoi(parse_cmd[1]);
-				char bytes[sizeof x];
-				std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
-				          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
-				          bytes);
-				vector<byte> vdata(bytes, bytes + sizeof(bytes));
-				Value val2 = {sizeof atoi(parse_cmd[1]), vdata};
-				int key = nextKey(id_num);
-				cout << key << endl;
-		    	db.insert(std::pair<unsigned long, Value>(key, val2));
-				cout << (int) db[key].data[0] << endl; */
 				insertDBNoKey(parse_cmd[1]);
 	    	}
 
 	    }
 
-	    else if(true)
+	    else if(strcmp(parse_cmd[0], "get") == 0)
 	    {
-
+	    	int value = getDB(parse_cmd[1]);
+	    	auto char_s = std::to_string(value);
+	    	char const *char_value = char_s.c_str();
+			send(new_socket, char_value, strlen(char_value), 0);
 	    }
 	}
 	return 0;
