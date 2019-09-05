@@ -253,6 +253,12 @@ int main(int argc, char** argv) {
 	    	}
 	    }
 
+	    else if(strcmp(parse_cmd[0], "disconnect") == 0)
+	    {
+	    	response = "Disconnecting";
+	    	shutdown(new_socket, 1);
+	    }
+
 	    else if(strcmp(parse_cmd[0], "peek") == 0)
 	    {
 	    	char* peek = "false";
