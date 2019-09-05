@@ -7,6 +7,7 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>  
+#include <arpa/inet.h>
 #include "util.h"
 //#include "mxnet-cpp/MxNetCpp.h"
 using namespace std;
@@ -112,7 +113,6 @@ int main(int argc, char** argv) {
 	int addrlen = sizeof(address);
 	char buffer[1024] = {0};
 	char* hello = "Hello from server";
-
 	// Procesar opciones de linea de comando
     while ((opt = getopt (argc, argv, "s:")) != -1) { 
         switch (opt)
@@ -137,8 +137,14 @@ int main(int argc, char** argv) {
         perror("setsockopt"); 
         exit(EXIT_FAILURE); 
     } 
-    address.sin_family = AF_INET; 
-    address.sin_addr.s_addr = INADDR_ANY; 
+    address.sin_family = AF_INET;
+    if (sflag == 1){
+    	cout << argv[2] << endl;
+    	address.sin_addr.s_addr = inet_addr(argv[2]);
+    }
+    else {
+    	address.sin_addr.s_addr = INADDR_ANY; 
+    }
     address.sin_port = htons( PORT ); 
 	// Uso elemental del almacenamiento KV:
       
