@@ -37,7 +37,7 @@ char** processCommand (char* command) { // insert(1023, 1213004)
 		
 		if(aux_cmd[i] == ',' || aux_cmd[i] == '('){
 			command_args[num_args][sub_arg_char_num + 1] = '\0';
-			cout << command_args[num_args] << endl;
+			// cout << command_args[num_args] << endl;
 			num_args++;
 			sub_arg_char_num = 0;
 			i++;
@@ -48,14 +48,58 @@ char** processCommand (char* command) { // insert(1023, 1213004)
 		}
 		command_args[num_args][sub_arg_char_num] = aux_cmd[i];
 		sub_arg_char_num++;
-		//cout << command_args[num_args][sub_arg_char_num] << endl;
+		// cout << command_args[num_args][sub_arg_char_num] << endl;
 	}
-	cout << command_args[0] << endl;
-	cout << command_args[1] << endl;
-	cout << command_args[2] << endl;
+	cout << command_args[0] << " " << command_args[1] << " "  << command_args[2] << " " << endl;
 	return command_args;
 }
 
+int nextKey()
+{
+	if((int) db[id_num].data.empty())
+	{
+		return id_num;
+	}
+	else
+	{
+		id_num++;
+		return nextKey();
+	}
+}
+
+int insertDB(char* key, char* value) {
+	cout << "With Key" << endl;
+	int x = atoi(value);
+	char bytes[sizeof x];
+	std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
+	          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
+	          bytes);
+	vector<byte> vdata(bytes, bytes + sizeof(bytes));
+	Value val2 = {sizeof atoi(value), vdata};
+	db.insert(std::pair<unsigned long, Value>(atoi(key), val2));
+	cout << (int) db[atoi(key)].data[0] << endl;
+
+	return atoi(key);
+}
+
+int insertDBNoKey(char* value) {
+	cout << "Without Key" << endl;
+	int x = atoi(value);
+	char bytes[sizeof x];
+	std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
+	          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
+	          bytes);
+	vector<byte> vdata(bytes, bytes + sizeof(bytes));
+	Value val2 = {sizeof atoi(value), vdata};
+	int key = nextKey();
+	cout << key << endl;
+	db.insert(std::pair<unsigned long, Value>(key, val2));
+	cout << "ah" << endl;
+	cout << db[key].data[0] << endl;
+	cout << "ah2" << endl;
+
+	return key;
+}
 
 //void insert (char*, char*)
 
@@ -134,26 +178,54 @@ int main(int argc, char** argv) {
         perror("accept"); 
         exit(EXIT_FAILURE); 
     } 
-<<<<<<< HEAD
-    valread = read(new_socket, buffer, 1024);
-    // cout << buffer << endl;
-    char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
-    cout << "out of method" << endl;
-    cout << parse_cmd[0] << endl;
-    send(new_socket, hello, strlen(hello), 0);
-
-=======
 	while(true){
 	    valread = read(new_socket, buffer, 1024);
 	    printf("%s\n",buffer ); 
+    	char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
 	    send(new_socket, hello, strlen(hello), 0);
 	    bzero(buffer, 1024);
+
+	    if(strcmp(parse_cmd[0], "insert") == 0)
+	    {
+	    	cout << "Insertion" << endl;
+	    	if(atoi(parse_cmd[2]) != NULL)
+	    	{
+	    		/*
+	    		cout << "With Key" << endl;
+		    	int x = atoi(parse_cmd[2]);
+				char bytes[sizeof x];
+				std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
+				          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
+				          bytes);
+				vector<byte> vdata(bytes, bytes + sizeof(bytes));
+				Value val2 = {sizeof atoi(parse_cmd[2]), vdata};
+		    	db.insert(std::pair<unsigned long, Value>(atoi(parse_cmd[1]), val2));
+				cout << (int) db[atoi(parse_cmd[1])].data[0] << endl; */
+				insertDB(parse_cmd[1], parse_cmd[2]);
+	    	}
+	    	else
+	    	{
+	    		/* cout << "Without Key" << endl;
+		    	int x = atoi(parse_cmd[1]);
+				char bytes[sizeof x];
+				std::copy(static_cast<const char*>(static_cast<const void*>(&x)),
+				          static_cast<const char*>(static_cast<const void*>(&x)) + sizeof x,
+				          bytes);
+				vector<byte> vdata(bytes, bytes + sizeof(bytes));
+				Value val2 = {sizeof atoi(parse_cmd[1]), vdata};
+				int key = nextKey(id_num);
+				cout << key << endl;
+		    	db.insert(std::pair<unsigned long, Value>(key, val2));
+				cout << (int) db[key].data[0] << endl; */
+				insertDBNoKey(parse_cmd[1]);
+	    	}
+
+	    }
+
+	    else if(true)
+	    {
+
+	    }
 	}
->>>>>>> 8ebf1a72a8b1b182e9431ca666359a5c86033b00
 	return 0;
 }
-
-/*
-int insert (int t_key, Value t_value) {
-	db.insert(std::pair<unsigned long, Value>(t_key,t_value));
-}*/
