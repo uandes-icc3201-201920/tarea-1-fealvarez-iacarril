@@ -189,6 +189,7 @@ int main(int argc, char** argv) {
 	while(true){
 	    valread = read(new_socket, buffer, 1024);
 	    printf("%s\n",buffer ); 
+	    char* response = "";
     	char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
 	    send(new_socket, hello, strlen(hello), 0);
 	    bzero(buffer, 1024);
@@ -212,6 +213,12 @@ int main(int argc, char** argv) {
 	    	auto char_s = std::to_string(value);
 	    	char const *char_value = char_s.c_str();
 			send(new_socket, char_value, strlen(char_value), 0);
+	    }
+
+	    else if(strcmp(parse_cmd[0], "disconnect") == 0)
+	    {
+	    	response = "Disconnecting";
+	    	shutdown(new_socket, 1);
 	    }
 	}
 	return 0;

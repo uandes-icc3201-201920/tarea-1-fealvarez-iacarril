@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
         printf("\nConnection Failed \n"); 
         return -1; 
     } 
-	while (cmd != "quit") {
+	while (cmd != "quit" || cmd != "disconnect") {
 		cout << ">";
 		cin >> cmd;
         //cout << cmd << endl;
