@@ -1,7 +1,6 @@
 #include <map>
 #include <vector>
 
-
 using namespace std;
 
 typedef unsigned char byte;
@@ -11,7 +10,6 @@ typedef struct {
 	size_t size;
 	vector<byte> data;
 } Value;
-
 
 // Definicion de la estructura K-V utilizada
 // Clave es numerica y valor es dado por estructura Value.

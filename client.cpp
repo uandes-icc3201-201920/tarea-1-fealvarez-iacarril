@@ -4,77 +4,116 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <arpa/inet.h> 
-#include <bits/stdc++.h>
 #include "util.h"
-#define PORT 8080
+#include <thread>
+#include <stdio.h>
+#include <pthread.h>
+
+
+
+
 using namespace std;
 
-int main(int argc, char** argv) {
-	
-    int sflag = 0;
-    string cmd = "";
-    char* address = "";
-	int sock = 0, valread; 
-    int sent = 0;
-    struct sockaddr_in serv_addr; 
-    char buffer[1024] = {0}; 
-    int opt;
-    //char *hello = "Hello from client"; 
-    while ((opt = getopt (argc, argv, "s:")) != -1) { 
-        switch (opt)
-        {
-            /* Procesar el flag s si el usuario lo ingresa */
-            case 's':
-                sflag = 1;
-                break;
-            default:
-                return EXIT_FAILURE;
-          }         
-    }
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
-    { 
-        printf("\n Socket creation error \n"); 
-        return -1; 
-    } 
-   
-    serv_addr.sin_family = AF_INET; 
-    serv_addr.sin_port = htons(PORT); 
+char *socket_path = "\0hidden";
+int timer_finish = 0;
 
-    if(sflag == 1){
-        cout << argv[2] << endl;
-        address = argv[2];
-    }
-    else {
-        address = "127.0.0.1";
-    }
-       
-    // Convert IPv4 and IPv6 addresses from text to binary form 
-    if(inet_pton(AF_INET, address, &serv_addr.sin_addr)<=0)  
-    { 
-        printf("\nInvalid address/ Address not supported \n"); 
-        return -1; 
-    } 
-   
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
-    { 
-        printf("\nConnection Failed \n"); 
-        return -1; 
-    } 
+void *timer(void *t) {
+			sleep(10000);
+			timer_finish = 1;
+}
+
+
+int main(int argc, char** argv) {
+	struct sockaddr_un addr;
+	string by_default = "/tmp/db.tuples.sock";
+	int fd, in; 
+	string cmd = "";
+	int sent = 0;
+	char buffer[1000];
+	char ruta[1000];
+	
 	while (cmd != "quit" || cmd != "disconnect") {
+		if (in == 1){
+			cout << "Estado: Conectado al servidor\n";
+		} else {
+			cout << "Estado: Desconectado\n";
+		}
+		if(cmd == "quit"){
+			close(fd);
+			in=0;
+			return 0;
+			}
 		cout << ">";
 		cin >> cmd;
-        //cout << cmd << endl;
-        char const *char_cmd = cmd.c_str();
-        cout << char_cmd << endl;
-        sent = send(sock, char_cmd, strlen(char_cmd), 0);
-        //cout << "sent" << endl;
-        //usleep(10000);
-        valread = read(sock, buffer, 1024);
-        cout << buffer << endl;
+		char const *char_cmd = cmd.c_str();
+		strcpy(buffer,cmd.c_str());
+		
+		if( cmd == "connect"){
+			cout << "Indique ruta del socket (indique con una 'd' si quiere la ruta por defecto)\n";
+			cin >> ruta;
+			if (ruta[0] == 'd')
+			{
+				cout << "su ruta es: /tmp/db.tuples.sock\n" ;
+				socket_path = "/tmp/db.tuples.sock";
+				
+			}
+			else {
+				cout << "su ruta es: " << ruta << "\n" ;
+				socket_path = ruta;
+			}
+			pthread_t time;
+			pthread_create(&time,NULL,&timer,(void *)1);
+			if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
+				cout << "socket error\n";
+				continue;
+			}
+			if (timer_finish == 1)
+			{
+				cout << "Out of Time\n";
+				timer_finish = 0;
+				continue;
+			}
+			timer_finish = 0;
+			memset(&addr, 0, sizeof(addr));
+			addr.sun_family = AF_UNIX; 
+			if (*socket_path == '\0') { 
+				*addr.sun_path = '\0'; 
+				strncpy(addr.sun_path+1, socket_path+1, sizeof(addr.sun_path)-2);
+			} else {
+				strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path)-1);
+  			}
+  			
+  			if (timer_finish == 1)
+			{
+				cout << "Out of Time\n";
+				timer_finish = 0;
+				continue;
+			}
+
+  			if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+    			cout << "connect error\n";
+    			continue;
+  			}
+  			in = 1;
+  			cout << "Conectado al servidor\n";
+		continue;	
+		}
+		
+		else if( cmd == "disconnect"){
+			close(fd);
+			cout << "Usted se a desconectado del servidor\n";
+			char const *char_cmd = cmd.c_str();
+			sent = send(fd, char_cmd, strlen(char_cmd), 0);
+			fd = NULL;
+			in = 0;
+			continue;
+		}
+		
+		
+		send(fd, char_cmd, strlen(char_cmd), 0);
+		
+		
 	}
+
 	return 0;	
 }

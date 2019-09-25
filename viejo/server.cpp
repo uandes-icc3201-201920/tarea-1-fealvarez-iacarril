@@ -3,16 +3,15 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include "util.h"
-#include <cstdio>
-#include <string.h>
+#include <netinet/in.h>
+#include <stdio.h> 
 #include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
-
-
+#include <string.h>  
+#include <arpa/inet.h>
+#include "util.h"
+//#include "mxnet-cpp/MxNetCpp.h"
 using namespace std;
-
+#define PORT 8080
 // Almacenamiento KV
 KVStore db;
 int id_num = 1000;
@@ -135,54 +134,53 @@ int updateDB(char* key, char* value) {
 
 	return (int) db[atoi(key)].data[0];
 }
-//char *socket_path = "./socket";
-char *socket_path = "/tmp/db.tuples.sock";
 
-int main(int argc, char * argv[]) {	
-	struct sockaddr_un addr;
-  	char buf[1024];
-  	int fd,cl,rc;
+
+//void insert (char*, char*)
+
+int main(int argc, char** argv) {	
+	
 	int sflag = 0;
 	int opt;
-	string s = "-s";
-	string cmd = "";
-
-
+	int server_fd, new_socket, valread;
+	struct sockaddr_in address;
+	int addrlen = sizeof(address);
+	char buffer[1024] = {0};
+	char* hello = "Server connected. \n";
 	// Procesar opciones de linea de comando
-    	while ((opt = getopt (argc, argv, "s:")) != -1) {
-		switch (opt){
+    while ((opt = getopt (argc, argv, "s:")) != -1) { 
+        switch (opt)
+		{
 			/* Procesar el flag s si el usuario lo ingresa */
 			case 's':
 				sflag = 1;
 				break;
 			default:
-				cout << "Ruta proporcionada no especificada o incorrecta, el programa procedera a a cerrarse"<<endl;
 				return EXIT_FAILURE;
-          		}	    	
-    		}
-
-	if (sflag == 1){
-		char *socket_path = argv[2];
-		cout<< "\nRuta De escucha acualizada, ahora sera: " << socket_path<<endl;
-		//paso ya el flag del -s
-		}
-//conexion
-	if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		cout<<"error de socket"<<endl;
-		perror("socket error");
-		exit(-1);
-		}
-
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	if (*socket_path == '\0') {
-		*addr.sun_path = '\0';
-		strncpy(addr.sun_path+1, socket_path+1, sizeof(addr.sun_path)-2);
-		} else {
-		strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path)-1);
-		unlink(socket_path);
-			}
-	/*// Uso elemental del almacenamiento KV:
+          }	    	
+    }
+	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+	{ 
+        perror("socket failed"); 
+        exit(EXIT_FAILURE); 
+    } 
+	// Forcefully attaching socket to the port 8080 
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 
+                                                  &opt, sizeof(opt))) 
+    { 
+        perror("setsockopt"); 
+        exit(EXIT_FAILURE); 
+    } 
+    address.sin_family = AF_INET;
+    if (sflag == 1){
+    	cout << argv[2] << endl;
+    	address.sin_addr.s_addr = inet_addr(argv[2]);
+    }
+    else {
+    	address.sin_addr.s_addr = INADDR_ANY; 
+    }
+    address.sin_port = htons( PORT ); 
+	// Uso elemental del almacenamiento KV:
       
 	// Creamos un arreglo de bytes a mano
 	byte data[] = { 0x01, 0x01, 0x01, 0x01, 0x01 };
@@ -201,98 +199,90 @@ int main(int argc, char * argv[]) {
 	db.insert(std::pair<unsigned long, Value>(1000, val));
 
 	// Imprimir lo que hemos agregado al mapa KV.
-	cout << db[1000].size << " " << (int) db[1000].data[0] << endl;*/
-	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-		perror("bind error");
-		exit(-1);
-		}
+	cout << db[1000].size << " " << (int) db[1000].data[0] << endl;
+	// Forcefully attaching socket to the port 8080 
+    if (bind(server_fd, (struct sockaddr *)&address,  
+                                 sizeof(address))<0) 
+    { 
+        perror("bind failed"); 
+        exit(EXIT_FAILURE); 
+    } 
+    if (listen(server_fd, 1) < 0) 
+    { 
+        perror("listen"); 
+        exit(EXIT_FAILURE); 
+    } 
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address,  
+                       (socklen_t*)&addrlen))<0) 
+    { 
+        perror("accept"); 
+        exit(EXIT_FAILURE); 
+    } 
+	while(true){
+	    bzero(buffer, 1024);
+	    valread = read(new_socket, buffer, 1024);
+	    printf("%s\n",buffer ); 
+    	char** parse_cmd = processCommand(buffer); //parse_cmd[0] = insert, parse_cmd[1] = key ,
+	    send(new_socket, hello, strlen(hello), 0);
+	    char* response = "";
 
-	if (listen(fd, 5) == -1) {
-		perror("listen error");
-		exit(-1);
-		}
+	    if(strcmp(parse_cmd[0], "insert") == 0)
+	    {
+	    	if(atoi(parse_cmd[2]) != NULL)
+	    	{
+				insertDB(parse_cmd[1], parse_cmd[2]);
+	    	}
+	    	else
+	    	{
+				insertDBNoKey(parse_cmd[1]);
+	    	}
+	    }
 
-	while (1) {
-		if ( (cl = accept(fd, NULL, NULL)) == -1) {
-			perror("accept error");
-			continue;
-			}
-		bzero(buf, sizeof(buf));
-		while ( (rc=read(cl,buf,sizeof(buf))) >= 0) {
-			
-			cout << buf<<" tamano es : " << strlen(buf)<<endl;
-			char** parse_cmd = processCommand(buf); //parse_cmd[0] = insert, parse_cmd[1] = key ,
-	    		
-			char* response = "";
-			if(strcmp(parse_cmd[0], "insert") == 0)
-			{
-				if(atoi(parse_cmd[2]) != NULL)
-				{
-						insertDB(parse_cmd[1], parse_cmd[2]);
-				}
-				else
-				{
-						insertDBNoKey(parse_cmd[1]);
-				}
-			}
+	    else if(strcmp(parse_cmd[0], "get") == 0)
+	    {
+	    	if(int value = getDB(parse_cmd[1]))
+	    	{
+	    		auto char_s = std::to_string(value);
+	    		char *char_value = &char_s[0];
+	    		response = char_value;
+	    	}
+	    	else
+	    	{
+	    		char* sending = ".";
+	    		response = sending;
+	    	}
+	    }
 
-			else if(strcmp(parse_cmd[0], "get") == 0)
-			{
-				if(int value = getDB(parse_cmd[1]))
-				{
-					auto char_s = std::to_string(value);
-					char *char_value = &char_s[0];
-					cout << value << endl;
-					response = char_value;
-				}
-				else
-				{
-					char* sending = ".";
-					response = sending;
-				}
-			}
+	    else if(strcmp(parse_cmd[0], "disconnect") == 0)
+	    {
+	    	response = "Disconnecting";
+	    	shutdown(new_socket, 1);
+	    }
 
-			else if(strcmp(parse_cmd[0], "disconnect") == 0)
-			{
-				response = "Disconnecting";
-				shutdown(fd, 1);
-			}
+	    else if(strcmp(parse_cmd[0], "peek") == 0)
+	    {
+	    	char* peek = "false";
+	    	if(peekDB(parse_cmd[1]))
+	    	{
+	    		peek = "true";
+	    	}
+	    	response = peek;
+	    	cout << peek << endl;
+	    }
 
-			else if(strcmp(parse_cmd[0], "peek") == 0)
-			{
-				char* peek = "false";
-				if(peekDB(parse_cmd[1]))
-				{
-					peek = "true";
-				}
-				response = peek;
-				cout << peek << endl;
-			}
+	    else if(strcmp(parse_cmd[0], "update") == 0)
+	    {
+			updateDB(parse_cmd[1], parse_cmd[2]);
+	    }
 
-			else if(strcmp(parse_cmd[0], "update") == 0)
-			{
-				updateDB(parse_cmd[1], parse_cmd[2]);
-			}
+	    else if(strcmp(parse_cmd[0], "delete") == 0)
+	    {
+			db.erase(atoi(parse_cmd[1]));
+			response = "Deleted.";
+	    }
 
-			else if(strcmp(parse_cmd[0], "delete") == 0)
-			{
-				db.erase(atoi(parse_cmd[1]));
-				response = "Deleted.";
-			}
-			send(fd, response, strlen(response), 0);
-		   	bzero(buf, sizeof(buf));
-			bzero(parse_cmd,sizeof(parse_cmd));
-		}
-		//buf[0]='\0';	
-		if (rc == -1) {
-	      		perror("read");
-	      		exit(-1);
-    		}
-    		else if (rc == 0) {
-	      		printf("Se ha terminado conexion con el cliente\n");
-	      		close(cl);
-    		}
+		send(new_socket, response, strlen(response), 0);
+	    bzero(buffer, 1024);
 	}
-
 	return 0;
 }
