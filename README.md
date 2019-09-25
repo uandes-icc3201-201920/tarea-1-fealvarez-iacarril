@@ -3,17 +3,19 @@ Repositorio base para tarea 1 de Sistemas Operativos y Redes 201920
 
 Miembros:
 -Francisco Jimenez
--Vcente Lucero
+-Francisco Álvarez
 
-Informe de la Tarea 1:
+Informe de la Tarea 1.2:
 	
 *Dificultades:
-	- El como realizar implementar correctamente el socket para comunicar al cliente con el servidor. 
-	- La lectura de datos parael server dado que recibian mas bytes de lo que realmente utilizaba el comando, esto debido al tamaño predefinido del buffer al inicio del main.
+	- El Server no siempre envia de vuelta la información al cliente, pero lleva a cabo la solicitud pedida
+	- El juntar ambos códigos de la parte 1.1 generó muchas confuciones para avanzar de un "desde" ya que no sabiamos claramente el código de el otro
+	- Ante la Comunicacion de 2 clientes, el segundo que llega queda en espera en cola al termino de el primer cliente, debido a dificultades en estructura del código 
 
 *No implementado:
-	- No esta implementado el manejor de errores en caso de se envien comandos incompletos, como por ejemplo update(key) en vez de update(key,value)
-	- listen del cliente ante las respuestas del usuario.
+	- No esta implementado el actuar simultaneo de los clientes
+	- threads de POSIX en Server,por confuciones en el código
 	
 *Problemas conocidos:
-	- El temporizador a pesar de estar implementado, no siempre realiza su correcta funcion, puede ser debido al mal uso del thread y de la recepcion de su finalización. 
+	- El temporizador a pesar de estar implementado, no siempre realiza su correcta funcion, puede ser debido al mal uso del thread y de la recepcion de su finalización.
+	- El servidor al serle ingresado valores, imprime lo que se le mando agregado de caracteres no deseados, lo cual puede causar que no entre en secciones del codigo deseado
